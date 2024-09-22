@@ -39,7 +39,7 @@ of bes computers
 """
 }
 
-url=bigfix_server + "api/query"
+url=bigfix_server + "/api/query"
 response=requests.post(url, data, bes_username, bes_password, verify)
 
 print(response.text)
