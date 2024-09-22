@@ -94,27 +94,32 @@ def create_baseline_component( name,
     #    <Relevance>true</Relevance>
     # </BaselineComponent>
 
+    
+    
+
     component=ElementTree.Element("BaselineComponent")
-    component.set("Name", name)
-    component.set("IncludeInRelevance", include_in_relevance)    
-    component.set("SourceSiteURL", source_site_url)
-    component.set("SourceID", str(source_id))
-    component.set("ActionName", action_name)
+    # TODO: Update the attributes and append the child elements for this fixlet
+
+    # component.set("Name", name)
+    # component.set("IncludeInRelevance", include_in_relevance)    
+    # component.set("SourceSiteURL", source_site_url)
+    # component.set("SourceID", str(source_id))
+    # component.set("ActionName", action_name)
     
-    actionscript_element=ElementTree.Element("ActionScript")
-    actionscript_element.set("MIMEType",script_type)
-    actionscript_element.text=action_script
-    component.append(actionscript_element)
+    # actionscript_element=ElementTree.Element("ActionScript")
+    # actionscript_element.set("MIMEType",script_type)
+    # actionscript_element.text=action_script
+    # component.append(actionscript_element)
     
-    success_criteria_element=ElementTree.Element("SuccessCriteria")
-    success_criteria_element.set("Option", success_criteria)
-    if success_criteria_element=="CustomRelevance":
-        success_criteria_element.text="Relevance"
-    component.append(success_criteria_element)
+    # success_criteria_element=ElementTree.Element("SuccessCriteria")
+    # success_criteria_element.set("Option", success_criteria)
+    # if success_criteria_element=="CustomRelevance":
+    #     success_criteria_element.text="Relevance"
+    # component.append(success_criteria_element)
     
-    relevance_element=ElementTree.Element("Relevance")
-    relevance_element.text=relevance
-    component.append(relevance_element)
+    # relevance_element=ElementTree.Element("Relevance")
+    # relevance_element.text=relevance
+    # component.append(relevance_element)
     return component
 
 def create_baseline_component_group(name=""):
@@ -170,19 +175,21 @@ for fixlet in fixlet_list:
                             script_type=fixlet[7], 
                             include_in_relevance=("true" if fixlet[8]=="Fixlet" else "false")
                             )
-    component_group.append(component)
-    break
+    # TODO - append the new component to the component_group
+    # component_group.append(component)
 
-component_collection=baseline_xml.find(".//BaselineComponentCollection")
-component_collection.append(component_group)
+# TODO - find the BaselineComponentCollection element in the baseline_xml and append the component_group to it
+# component_collection=baseline_xml.find(".//BaselineComponentCollection")
+# component_collection.append(component_group)
 
 modification_time=baseline_xml.find(".//MIMEField[Name='x-fixlet-modification-time']/Value")
 if modification_time is not None:
     modification_time.text=to_bes_time()
 
-source_release_date=baseline_xml.find(".//SourceReleaseDate")
-if source_release_date is not None:
-    source_release_date.text=to_bes_date()
+# TODO - find the SourceReleaseDate element in the baseline_xml and set it to the current date
+# source_release_date=baseline_xml.find(".//SourceReleaseDate")
+# if source_release_date is not None:
+#     source_release_date.text=to_bes_date()
 
 response=requests.post(url=f'{bigfix_server}/api/baselines/{baseline_site}', data=ElementTree.tostring(baseline_xml), headers={'Content-Type': 'text/xml'}, auth=(bes_username, bes_password), verify=verify)
 if response.ok:
