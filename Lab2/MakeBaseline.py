@@ -1,8 +1,6 @@
 import datetime
 import requests
 from xml.etree import ElementTree
-from xml.dom import minidom
-
 
 bigfix_server="https://bes-root.local:52311"
 bes_username="mo"
@@ -36,12 +34,9 @@ baseline_template="""<?xml version="1.0" encoding="UTF-8"?>
 </BES>
 """
 
-def pretty_print(xml_root_node, encoding="utf-8"):
-    dom = minidom.parseString(ElementTree.tostring(xml_root_node, method="xml"))
-    return dom.toprettyxml(encoding=encoding, newl='').decode(encoding=encoding)
 
 def to_bes_time(
-    time_to_format=datetime.datetime.now(datetime.datetime.now().astimezone().tzinfo)
+    time=datetime.datetime.now(datetime.datetime.now().astimezone().tzinfo)
 ):
     """
     Given a datetime object with timezone(defaulting to current time and local time zone),
@@ -50,16 +45,16 @@ def to_bes_time(
     to_bes_time() -> 'Sun, 22 Sep 2024 15:50:44 -0500'
     to_bes_time(datetime.datetime.now().astimezone(datetime.timezone.utc)) -> 'Sun, 22 Sep 2024 20:51:38 +0000'
     """
-    return time_to_format.strftime("%a, %d %b %Y %H:%M:%S %z")
+    return time.strftime("%a, %d %b %Y %H:%M:%S %z")
 
 def to_bes_date(
-    date_to_format=datetime.datetime.now(datetime.datetime.now().astimezone().tzinfo)
+    date=datetime.datetime.now(datetime.datetime.now().astimezone().tzinfo)
 ):
     """
     Given a datetime object with timezone(defaulting to current time and local time zone),
     return a BES formatted date string, i.e. '2024-04-23'
     """
-    return date_to_format.strftime("%Y-%m-%d")
+    return date.strftime("%Y-%m-%d")
 
 def test_login(bigfix_server, bes_username, bes_password, verify):
     response=requests.get(bigfix_server + "/api/login", auth=(bes_username, bes_password), verify=verify)
@@ -87,10 +82,16 @@ def create_baseline_component( name,
                                include_in_relevance="true"):
     """Creates a BaselineComponent from an existing Fixlet """
       
-    # <BaselineComponent Name="CustomFixlet1" IncludeInRelevance="true" SourceSiteURL="http://{root-server}:52311/cgi-bin/bfgather.exe/actionsite" SourceID="40" ActionName="Action1">
-    #     <ActionScript MIMEType="application/x-Fixlet-Windows-Shell">// Action Script t</ActionScript>
-    #     <SuccessCriteria Option="CustomRelevance">Relevance</SuccessCriteria>
-    #     <Relevance>true</Relevance>
+    # <BaselineComponent 
+    #       Name="CustomFixlet1" 
+    #       IncludeInRelevance="true" 
+    #       SourceSiteURL="http://{root-server}:52311/cgi-bin/bfgather.exe/actionsite" 
+    #       SourceID="40" 
+    #       ActionName="Action1"
+    #       >
+    #    <ActionScript MIMEType="application/x-Fixlet-Windows-Shell">// Action Script </ActionScript>
+    #    <SuccessCriteria Option="CustomRelevance">Relevance</SuccessCriteria>
+    #    <Relevance>true</Relevance>
     # </BaselineComponent>
 
     component=ElementTree.Element("BaselineComponent")
@@ -118,9 +119,9 @@ def create_baseline_component( name,
 
 def create_baseline_component_group(name=""):
     """Creates a BaselineComponentGroup to hold multiple BaselineComponents"""
-    group=ElementTree.Element("BaselineComponentGroup")
-    group.set("Name", name)
-    return group
+    component_group=ElementTree.Element("BaselineComponentGroup")
+    component_group.set("Name", name)
+    return component_group
 
 
 
@@ -152,9 +153,10 @@ data = {
 
 url=bigfix_server + "/api/query"
 response=run_query(url, data, bes_username, bes_password, verify)
-baseline_xml=ElementTree.fromstring(baseline_template)
-fixlet_list=response.json()["result"]
+response_json=response.json()
+fixlet_list=response_json["result"]
 
+baseline_xml=ElementTree.fromstring(baseline_template)
 component_group=create_baseline_component_group(name="My Component Group")
 
 for fixlet in fixlet_list:
@@ -182,8 +184,8 @@ source_release_date=baseline_xml.find(".//SourceReleaseDate")
 if source_release_date is not None:
     source_release_date.text=to_bes_date()
 
-baseline_data={
-    "data": baseline_xml,
-    "Content-Type": "application/xml"
-}
 response=requests.post(url=f'{bigfix_server}/api/baselines/{baseline_site}', data=ElementTree.tostring(baseline_xml), headers={'Content-Type': 'text/xml'}, auth=(bes_username, bes_password), verify=verify)
+if response.ok:
+    print(f"Baseline creation succeeded with {response.status_code}, message {response.text}")
+else:
+    raise ValueError(f"Baseline creation failed with {response.status_code}, message {response.text}, unable to continue")
