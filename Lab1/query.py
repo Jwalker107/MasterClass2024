@@ -17,6 +17,10 @@ def test_login(bigfix_server, bes_username, bes_password, verify):
 
 def run_query(url, data, bes_username, bes_password, verify):
     response=requests.post(url=url, data=data, auth=(bes_username, bes_password), verify=verify)
+    if response.ok:
+        print(f"Query succeeded with {response.status_code}, message {response.text}")
+    else:
+        raise ValueError(f"Login failed with {response.status_code}, message {response.text}, unable to continue")
     return response
 
 # Because we have not yet installed/configured a trusted certificate for the BigFix Root Server,
