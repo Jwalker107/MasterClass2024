@@ -2,13 +2,13 @@ import datetime
 import requests
 from xml.etree import ElementTree
 
-bigfix_server="https://bes-root.local:52311"
-bes_username="mo"
-bes_password="BES-Dev-1"
+bigfix_server="https://BESFNDWINROOT:52311"
+bes_username="adminmo"
+bes_password="NotToday!"
 # Because we have not yet installed/configured a trusted certificate for the BigFix Root Server,
 # we need to ignore certificate errors when connecting to it
 verify=False
-baseline_site="custom/Test"
+baseline_site="custom/WindowsPatchBaselines"
 
 baseline_template="""<?xml version="1.0" encoding="UTF-8"?>
 <BES xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="BES.xsd">
